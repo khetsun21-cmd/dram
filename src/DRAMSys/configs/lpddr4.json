@@ -1,0 +1,16 @@
+{
+    "simulation": {
+        "addressmapping": "addressmapping/am_lpddr4_32Mbx16.json",
+        "mcconfig": "mcconfig/fr_fcfs.json",
+        "memspec": "memspec/JEDEC_32Mb_LPDDR4-400_16bit.json",
+        "simconfig": "simconfig/gem5_se.json",
+        "simulationid": "lpddr4-example",
+        "tracesetup": [
+            {
+                "type": "player",
+                "clkMhz": 200,
+                "name": "traces/example.stl"
+            }
+        ]
+    }
+}
