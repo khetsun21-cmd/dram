@@ -24,6 +24,7 @@ public:
     const std::filesystem::path& get_config_path() const { return config_path_; }
 
 protected:
+    void before_end_of_elaboration() override;
     void end_of_elaboration() override;
 
 private:
