@@ -1,30 +1,46 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # Usage: build.sh {rel|dbg|dbg_asan|clean} [native] [install]
 
-if [ -z "$1" ]; then
+if [ $# -lt 1 ]; then
   echo 'build.sh {rel|dbg|dbg_asan|clean} [native] [install]'
   exit 1
 fi
 
-NATIVE_FLAG=""
-if [ "$2" = 'native' ] || [ "$3" = 'native' ]; then
-  NATIVE_FLAG="-DDRAMSYS_NATIVE_INTEGRATION=ON"
-fi
+command=$1
+shift
 
-case "$1" in
+native_flag=""
+install_requested=false
+
+for arg in "$@"; do
+  case "$arg" in
+    native)
+      native_flag="-DDRAMSYS_NATIVE_INTEGRATION=ON"
+      ;;
+    install)
+      install_requested=true
+      ;;
+    *)
+      echo "Unknown option: $arg"
+      echo 'build.sh {rel|dbg|dbg_asan|clean} [native] [install]'
+      exit 1
+      ;;
+  esac
+done
+
+cmake_args=(-S . -B build)
+
+case "$command" in
   rel)
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${SIPU_SDK_PATH} ${NATIVE_FLAG}
-    cmake --build build --parallel
+    cmake_args+=(-DCMAKE_BUILD_TYPE=Release)
     ;;
   dbg)
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${SIPU_SDK_PATH} ${NATIVE_FLAG}
-    cmake --build build --parallel
+    cmake_args+=(-DCMAKE_BUILD_TYPE=Debug)
     ;;
   dbg_asan)
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=DebugWithASan -DCMAKE_INSTALL_PREFIX=${SIPU_SDK_PATH} ${NATIVE_FLAG}
-    cmake --build build --parallel
+    cmake_args+=(-DCMAKE_BUILD_TYPE=DebugWithASan)
     ;;
   clean)
     rm -rf build
@@ -36,6 +52,17 @@ case "$1" in
     ;;
 esac
 
-if [ "$2" = 'install' ] || [ "$3" = 'install' ]; then
+if [ -n "${SIPU_SDK_PATH:-}" ]; then
+  cmake_args+=(-DCMAKE_INSTALL_PREFIX="${SIPU_SDK_PATH}")
+fi
+
+if [ -n "$native_flag" ]; then
+  cmake_args+=($native_flag)
+fi
+
+cmake "${cmake_args[@]}"
+cmake --build build --parallel
+
+if [ "$install_requested" = true ]; then
   cmake --install build
 fi
