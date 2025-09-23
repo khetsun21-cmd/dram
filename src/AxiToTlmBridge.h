@@ -38,6 +38,9 @@ public:
     void set_downstream_beat_bytes(std::size_t n) { downstream_beat_bytes_ = n; }
     std::size_t get_downstream_beat_bytes() const { return downstream_beat_bytes_; }
 
+protected:
+    void before_end_of_elaboration() override;
+
 private:
     using payload_type = axi::axi_protocol_types::tlm_payload_type;
     using phase_type = axi::axi_protocol_types::tlm_phase_type;
