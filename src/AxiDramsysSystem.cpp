@@ -12,6 +12,11 @@ void AxiDramsysSystem::set_config_path(const std::filesystem::path& config_path)
     config_path_ = config_path;
 }
 
+void AxiDramsysSystem::before_end_of_elaboration() {
+    sc_module::before_end_of_elaboration();
+    instantiate_dramsys();
+}
+
 void AxiDramsysSystem::end_of_elaboration() {
     sc_module::end_of_elaboration();
     instantiate_dramsys();

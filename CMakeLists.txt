@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.22)
 
 project(DramsysAxiSimulation LANGUAGES CXX)
 
+include(CTest)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(SC_FORCE_SHARED "Build SystemC/DRAMSys dependencies as shared libraries" ON)
@@ -263,6 +265,19 @@ if(DRAMSYS_NATIVE_INTEGRATION)
     if(EXISTS "${_bridge_test_src}")
         add_executable(bridge_test "${_bridge_test_src}")
         target_link_libraries(bridge_test PRIVATE SystemC::systemc axi_dramsys_bridge)
+        target_include_directories(bridge_test PRIVATE
+            "${DRAMSYS_PATH}/src"
+            "${DRAMSYS_PATH}/src/configuration"
+            "${DRAMSYS_PATH}/include"
+            "${DRAMSYS_PATH}/lib/DRAMUtils/include"
+            "${DRAMSYS_PATH}/lib/DRAMUtils/include/DRAMUtils"
+            "${DRAMSYS_PATH}/lib/DRAMPower/src/DRAMPower"
+            "${DRAMSYS_PATH}/src/libdramsys"
+            "${DRAMSYS_PATH}/lib/nlohmann_json/include")
+        target_compile_definitions(bridge_test PRIVATE SRC_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+        if(BUILD_TESTING)
+            add_test(NAME bridge_test COMMAND bridge_test)
+        endif()
     else()
         message(STATUS "Test source ${_bridge_test_src} not found; skipping bridge_test target")
     endif()
@@ -273,8 +288,17 @@ if(DRAMSYS_NATIVE_INTEGRATION)
         target_link_libraries(dramsys_lpddr4_test PRIVATE SystemC::systemc axi_dramsys_bridge ${DRAMSYS_TARGET})
         target_include_directories(dramsys_lpddr4_test PRIVATE
             "${DRAMSYS_PATH}/src"
-            "${DRAMSYS_PATH}/include")
+            "${DRAMSYS_PATH}/src/configuration"
+            "${DRAMSYS_PATH}/include"
+            "${DRAMSYS_PATH}/lib/DRAMUtils/include"
+            "${DRAMSYS_PATH}/lib/DRAMUtils/include/DRAMUtils"
+            "${DRAMSYS_PATH}/lib/DRAMPower/src/DRAMPower"
+            "${DRAMSYS_PATH}/src/libdramsys"
+            "${DRAMSYS_PATH}/lib/nlohmann_json/include")
         target_compile_definitions(dramsys_lpddr4_test PRIVATE SRC_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+        if(BUILD_TESTING)
+            add_test(NAME dramsys_lpddr4_test COMMAND dramsys_lpddr4_test)
+        endif()
     else()
         message(STATUS "Test source ${_lpddr4_test_src} not found; skipping dramsys_lpddr4_test target")
     endif()
