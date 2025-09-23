@@ -1,5 +1,6 @@
-# --- 1. 项目基本配置 ---
-# 参考CMAke版本和C++标准设置
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# --- 1. 憿寧�箸�蔭 ---
+# �MAke��++��霈曄蔭
 cmake_minimum_required(VERSION 3.22)
 project(DramsysAxiSimulation CXX)
 option(SC_FORCE_SHARED "Build SystemC/DRAMSys dependencies as shared libraries" ON)
@@ -88,9 +89,9 @@ if(NOT Boost_FOUND)
     message(STATUS "Boost 1.70+ not found yet (components: system, date_time, filesystem). Set Boost_ROOT/BOOST_ROOT to your local Boost or install Boost.")
 endif()
 
-# 让子项目也能找到我们提供�?Find*.cmake 模块
+# 霈拙�憿寧銋�曉�賑���?Find*.cmake 璅∪�
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-# 确保子项目也能继承到我们自定义的 Find 模块（通过 Cache 强化作用域）
+# 蝖桐�摮★�桐��賜誧�踹�賑�芸�銋� Find 璅∪�嚗� Cache 撘箏�雿��
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" CACHE STRING "Module search path (includes ${CMAKE_CURRENT_SOURCE_DIR}/cmake)" FORCE)
 find_package(fmt QUIET)
 find_package(spdlog QUIET)
@@ -99,17 +100,17 @@ find_package(yaml-cpp QUIET)
 # Avoid install/export checks for bundled subprojects during this build
 set(CMAKE_SKIP_INSTALL_RULES ON CACHE BOOL "Skip install() rules for subprojects" FORCE)
 
-# 统一使用 C++20，便于与上层工程（esl_model）一致，避免 SystemC API 版本符号不匹�
+# 蝏�雿輻 C++20嚗噶鈭�銝�撌亦�嚗sl_model嚗��湛��踹� SystemC API �蝚血銝�
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# --- 2. 编译标志管理 ---
-# 汇集编译定义和选项，参考了您提供的示例风格
-# -fPIC: 生成位置无关代码，对于共享库是必需�?# -DSC_INCLUDE_DYNAMIC_PROCESSES: SystemC动态进程所需
+# --- 2. 蝻���蝞∠� ---
+# 瘙�蝻�摰��★嚗����冽�靘�蝷箔�憌
+# -fPIC: ��雿蔭�隞��嚗笆鈭鈭怠��臬���?# -DSC_INCLUDE_DYNAMIC_PROCESSES: SystemC�冽�蝔��
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -DSC_INCLUDE_DYNAMIC_PROCESSES -D_GNU_SOURCE")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter")
 
-# 根据构建类型添加特定的调试标�
+# �寞�遣蝐餃�瘛餃��孵���霂�敹
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Build type: Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb")
@@ -119,25 +120,25 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "DebugWithASan")
     link_libraries(asan)
 endif()
 
-# --- 3. 依赖项路径配�?---
-# 用户需要根据实际情况修改这些路�
+# --- 3. 靘�憿寡楝敺�蝵?---
+# �冽�閬�桀����萎耨�寡�鈭楝敺
 set(SYSTEMC_PATH "../systemc-2.3.4" CACHE PATH "Path to SystemC root directory")
-# 指向本仓库自带的 DRAMSys 源码位置
+# ���砌�摨撣衣� DRAMSys 皞�雿蔭
 set(DRAMSYS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/DRAMSys" CACHE PATH "Path to DRAMSys root directory")
-# 缺省指向 DRAMSYS_PATH/lib/SystemC-Components（可被命令行覆盖），无需在命令行显式传入
-# scc-sysc 不再作为依赖项使用，相关集成已移�?
-# �?SystemC 源码已放�?DRAMSys 下，则优先让 DRAMSys 构建并提�?SystemC 目标
+# 蝻箇��� DRAMSYS_PATH/lib/SystemC-Components嚗鋡怠隞方�閬�嚗����典隞方��曉�隡
+# scc-sysc 銝�雿蛹靘�憿嫣蝙�剁��詨��撌脩宏�?
+# �?SystemC 皞�撌脫�?DRAMSys 銝����悟 DRAMSys �遣撟嗆�靘?SystemC �格�
 if(EXISTS "${DRAMSYS_PATH}/lib/systemc-2.3.4")
     get_filename_component(_ABS_SYSTEMC_PRE "${DRAMSYS_PATH}/lib/systemc-2.3.4" ABSOLUTE)
     set(DRAMSYS_USE_FETCH_CONTENT_SYSTEMC ON CACHE BOOL "" FORCE)
     set(FETCHCONTENT_SOURCE_DIR_SYSTEMCLANGUAGE "${_ABS_SYSTEMC_PRE}" CACHE PATH "" FORCE)
 endif()
 
-# --- 4. 依赖/FetchContent 选项 ---
-# 缺省关闭全局 FetchContent，但若本仓库已自带某些三方库源码，则针对性开启对应开�
+# --- 4. 靘�/FetchContent �★ ---
+# 蝻箇��喲�典� FetchContent嚗��交隞�撌脰撣行�鈭��孵�皞�嚗��笆�批��臬笆摨��
 set(DRAMSYS_USE_FETCH_CONTENT OFF CACHE BOOL "Enable FetchContent for DRAMSys")
 
-# 如果 DRAMSys/lib/sqlite3 存在，则开启由 DRAMSys 内部拉取/构建 SQLite3 的路径，避免系统级安装依�
+# 憒� DRAMSys/lib/sqlite3 摮嚗�撘�舐 DRAMSys ���/�遣 SQLite3 �楝敺��踹�蝟餌�蝥批�鋆�韏
 if(EXISTS "${DRAMSYS_PATH}/lib/sqlite3")
     set(DRAMSYS_USE_FETCH_CONTENT_SQLITE3 ON CACHE BOOL "Fetch SQLite3 for DRAMSys" FORCE)
 else()
@@ -147,17 +148,17 @@ endif()
 set(DRAMSYS_USE_FETCH_CONTENT_INTERNAL OFF CACHE BOOL "Fetch DRAMUtils/DRAMPower for DRAMSys")
 set(DRAMSYS_USE_FETCH_CONTENT_SYSTEMC OFF CACHE BOOL "Fetch SystemC for DRAMSys")
 
-# 是否�?DRAMSys 作为子项目构建（add_subdirectory），默认关闭以优先使用预编译�
+# �臬撠?DRAMSys 雿蛹摮★�格�撱綽�add_subdirectory嚗�暺恕�喲隞乩��蝙�券�蝻�摨
 set(DRAMSYS_USE_SUBPROJECT ON CACHE BOOL "Build DRAMSys from source via add_subdirectory (default ON)")
 
-# 可选：直接指定预编译的 libdramsys 路径
+# �舫��湔��憸�霂� libdramsys 頝臬�
 set(DRAMSYS_LIB "" CACHE FILEPATH "Path to prebuilt libdramsys (optional)")
 
 ## Arteris tlm2-interfaces
-# 不在此处单独编译，改为仅包含其头文件，由 DRAMSys/SCC 端提供所需实现�
+# 銝甇文��蝻�嚗銝箔���嗅仍�辣嚗 DRAMSys/SCC 蝡舀�靘��摰�
 set(ARTERIS_PATH "${DRAMSYS_PATH}/lib/tlm2-interfaces" CACHE PATH "Path to tlm2-interfaces headers (default DRAMSys/lib/tlm2-interfaces)")
 
-# 如果不从 DRAMSys 获取 SystemC，则尝试使用本地 SystemC 并提�?SystemC::systemc 目标
+# 憒�銝� DRAMSys �瑕� SystemC嚗�撠�雿輻�砍 SystemC 撟嗆�靘?SystemC::systemc �格�
 if(NOT DRAMSYS_USE_FETCH_CONTENT_SYSTEMC)
     find_library(systemc_lib
         NAMES systemc libsystemc.so libsystemc.a
@@ -176,11 +177,11 @@ if(NOT DRAMSYS_USE_FETCH_CONTENT_SYSTEMC)
 endif()
 
 
-# --- 5. 定义您的仿真目标 (改为构建共享�? ---
-# 将仿真器本身构建为一个共享库，而不是可执行文件
-## 解析 DRAMSys 目标（包/子目�?预编译）
+# --- 5. 摰��函�隞輻��格� (�嫣蛹�遣�曹澈摨? ---
+# 撠遛��祈澈�遣銝箔�銝芸鈭怠�嚗��臬�扯��辣
+## 閫�� DRAMSys �格�嚗�/摮敶?憸�霂�
 if(NOT DEFINED DRAMSYS_TARGET OR DRAMSYS_TARGET STREQUAL "")
-    # A) 明确指定了预编译�?
+    # A) �＆��鈭�蝻�摨?
     if(DRAMSYS_LIB)
         if(EXISTS "${DRAMSYS_LIB}")
             add_library(DRAMSys::libdramsys UNKNOWN IMPORTED)
@@ -192,7 +193,7 @@ if(NOT DEFINED DRAMSYS_TARGET OR DRAMSYS_TARGET STREQUAL "")
         endif()
     endif()
 
-    # B) 尝试已安装的 CMake �?
+    # B) 撠�撌脣�鋆� CMake �?
     if(NOT DRAMSYS_TARGET)
         find_package(DRAMSys QUIET CONFIG)
         if(TARGET DRAMSys::libdramsys)
@@ -201,16 +202,16 @@ if(NOT DEFINED DRAMSYS_TARGET OR DRAMSYS_TARGET STREQUAL "")
         endif()
     endif()
 
-    # C) 可选：作为子项目构建（仅当开�?DRAMSYS_USE_SUBPROJECT�?
+    # C) �舫�雿蛹摮★�格�撱綽�隞�撘�?DRAMSYS_USE_SUBPROJECT嚗?
     if(NOT DRAMSYS_TARGET AND DRAMSYS_USE_SUBPROJECT AND EXISTS "${DRAMSYS_PATH}/CMakeLists.txt")
         message(STATUS "Adding DRAMSys as subdirectory from: ${DRAMSYS_PATH}")
 
-        # 注意：不再在此处引入 sqlite3，SystemC-Components/third_party 已自带并由其 CMake 统一处理
+        # 瘜冽�嚗��甇文�撘 sqlite3嚗ystemC-Components/third_party 撌脰撣血僎�勗 CMake 蝏�憭�
 
         if(EXISTS "${DRAMSYS_PATH}/lib/DRAMUtils")
             get_filename_component(_ABS_DRAMUTILS "${DRAMSYS_PATH}/lib/DRAMUtils" ABSOLUTE)
             set(DRAMSYS_USE_FETCH_CONTENT_INTERNAL ON CACHE BOOL "" FORCE)
-            # 注意：FetchContent 变量名需全大�?
+            # 瘜冽�嚗etchContent �����典之�?
             set(FETCHCONTENT_SOURCE_DIR_DRAMUTILS "${_ABS_DRAMUTILS}" CACHE PATH "" FORCE)
             message(STATUS "Using local DRAMUtils source: ${FETCHCONTENT_SOURCE_DIR_DRAMUTILS}")
         endif()
@@ -256,12 +257,12 @@ if(NOT DEFINED DRAMSYS_TARGET OR DRAMSYS_TARGET STREQUAL "")
             endforeach()
         endif()
 
-        # 若任何子依赖使用�?FetchContent，则打开总开�?
+        # �乩遙雿�靘�雿輻鈭?FetchContent嚗����餃��?
         if(DRAMSYS_USE_FETCH_CONTENT_INTERNAL OR DRAMSYS_USE_FETCH_CONTENT_SYSTEMC OR DRAMSYS_USE_FETCH_CONTENT_NLOHMANN_JSON OR DRAMSYS_USE_FETCH_CONTENT_SQLITE3)
             set(DRAMSYS_USE_FETCH_CONTENT ON CACHE BOOL "" FORCE)
         endif()
 
-        # 将开关传递给 DRAMSys（其余保持用户在命令行传入的设置�?
+        # 撠��喃��� DRAMSys嚗雿���瑕�賭誘銵��亦�霈曄蔭嚗?
         set(DRAMSYS_USE_FETCH_CONTENT ${DRAMSYS_USE_FETCH_CONTENT} CACHE BOOL "" FORCE)
         set(DRAMSYS_USE_FETCH_CONTENT_INTERNAL ${DRAMSYS_USE_FETCH_CONTENT_INTERNAL} CACHE BOOL "" FORCE)
         set(DRAMSYS_USE_FETCH_CONTENT_NLOHMANN_JSON ${DRAMSYS_USE_FETCH_CONTENT_NLOHMANN_JSON} CACHE BOOL "" FORCE)
@@ -288,7 +289,7 @@ if(NOT DEFINED DRAMSYS_TARGET OR DRAMSYS_TARGET STREQUAL "")
         endif()
         unset(_SC_POLICY_MIN_WAS_DEFINED)
         unset(_SC_PREV_POLICY_MIN)
-        # �?DRAMSys 构建出了 'systemc' 目标而未提供别名，则创建别名以兼容下�?
+        # �?DRAMSys �遣�箔� 'systemc' �格�����怠�嚗��遣�怠�隞亙摰嫣�皜?
         if(TARGET systemc AND NOT TARGET SystemC::systemc)
             add_library(SystemC::systemc ALIAS systemc)
         endif()
@@ -297,17 +298,27 @@ if(NOT DEFINED DRAMSYS_TARGET OR DRAMSYS_TARGET STREQUAL "")
         endif()
     endif()
 
-    # D) 在默认的输出目录猜测预编译库
-    if(NOT DRAMSYS_TARGET)
-        find_library(_dramsys_guess
-            NAMES libdramsys dramsys libdramsys.so libdramsys.a
-            PATHS "${DRAMSYS_PATH}/build/src/libdramsys" "${DRAMSYS_PATH}/lib" "${DRAMSYS_PATH}/build"
-            NO_DEFAULT_PATH)
-        if(_dramsys_guess)
-            add_library(DRAMSys::libdramsys UNKNOWN IMPORTED)
-            set_target_properties(DRAMSys::libdramsys PROPERTIES IMPORTED_LOCATION "${_dramsys_guess}")
-            set(DRAMSYS_TARGET DRAMSys::libdramsys)
-            message(STATUS "Using prebuilt DRAMSys library (guessed): ${_dramsys_guess}")
+add_library(axi_dramsys_bridge SHARED
+    src/AxiDramsysSystem.cpp
+set(_bridge_test_src "${CMAKE_CURRENT_SOURCE_DIR}/tests/bridge_test.cpp")
+if(EXISTS "${_bridge_test_src}")
+    add_executable(bridge_test "${_bridge_test_src}")
+    target_link_libraries(bridge_test PRIVATE SystemC::systemc axi_dramsys_bridge)
+else()
+    message(STATUS "Test source ${_bridge_test_src} not found; skipping bridge_test target")
+endif()
+
+set(_lpddr4_test_src "${CMAKE_CURRENT_SOURCE_DIR}/tests/dramsys_lpddr4_test.cpp")
+if(EXISTS "${_lpddr4_test_src}")
+    add_executable(dramsys_lpddr4_test "${_lpddr4_test_src}")
+    target_link_libraries(dramsys_lpddr4_test PRIVATE SystemC::systemc axi_dramsys_bridge ${DRAMSYS_TARGET})
+    target_include_directories(dramsys_lpddr4_test PRIVATE
+        "${DRAMSYS_PATH}/src"
+        "${DRAMSYS_PATH}/include")
+    target_compile_definitions(dramsys_lpddr4_test PRIVATE SRC_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+else()
+    message(STATUS "Test source ${_lpddr4_test_src} not found; skipping dramsys_lpddr4_test target")
+endif()
         endif()
     endif()
 
@@ -320,22 +331,22 @@ add_library(axi_dramsys_bridge STATIC
     src/AxiToTlmBridge.cpp
 )
 
-# --- 6. 设置包含目录 ---
+# --- 6. 霈曄蔭��桀� ---
 target_include_directories(axi_dramsys_bridge
     PUBLIC
-        # 本项目头文件（供依赖该库的目标使用）
+        # �祇★�桀仍�辣嚗�靘�霂亙���蝙�剁�
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tlm2-interfaces"
     PRIVATE
-        # DRAMSys 库头文件（仅库自身需要）
+        # DRAMSys 摨仍�辣嚗�摨頨恍�閬�
         "${DRAMSYS_PATH}/src/libdramsys"
         "${DRAMSYS_PATH}/include"
 )
 
-# --- 7. 链接�?---
+# --- 7. �暹摨?---
 target_link_libraries(axi_dramsys_bridge PRIVATE SystemC::systemc ${DRAMSYS_TARGET})
 
-# --- 9. 测试可执行程�?---
+# --- 9. 瘚��舀銵�摨?---
 add_executable(bridge_test tests/bridge_test.cpp)
 target_link_libraries(bridge_test PRIVATE SystemC::systemc axi_dramsys_bridge)
 
@@ -347,6 +358,6 @@ target_include_directories(dramsys_lpddr4_test PRIVATE
     "${DRAMSYS_PATH}/include")
 target_compile_definitions(dramsys_lpddr4_test PRIVATE SRC_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
-# --- 8. 安装目标 ---
-# 将生成的共享库安装到指定的lib目录�?install(TARGETS axi_dramsys_bridge LIBRARY DESTINATION lib)
+# --- 8. 摰��格� ---
+# 撠����曹澈摨�鋆���ib�桀�銝?install(TARGETS axi_dramsys_bridge LIBRARY DESTINATION lib)
 endif() # DRAMSYS_NATIVE_INTEGRATION

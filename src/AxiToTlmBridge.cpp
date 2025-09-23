@@ -14,10 +14,14 @@ AxiToTlmBridge::AxiToTlmBridge(sc_core::sc_module_name name, std::size_t data_wi
     axi_target_socket.bind(*this);
     // Bind backward interface for downstream target (required by initiator socket)
     tlm_initiator_socket(*this);
-    // Provide default clock binding to avoid unbound port error
-    clk_i(clk_gen_);
     // Worker for nb_transport requests
     SC_THREAD(process_axi_reqs);
+}
+
+void AxiToTlmBridge::before_end_of_elaboration() {
+    if (clk_i.get_interface() == nullptr) {
+        clk_i.bind(clk_gen_);
+    }
 }
 
 void AxiToTlmBridge::process_axi_reqs() {
