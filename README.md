@@ -78,7 +78,14 @@ AXIResponse rsp = AXIHelper::sendBlockingRead(cpu_socket, req, delay);
 | `ARTERIS_PATH` | `DRAMSys/lib/tlm2-interfaces` | 指向 tlm2-interfaces 头文件位置，便于桥接模块包含 AXI 协议定义。【F:CMakeLists.txt†L157-L160】 |
 
 ## 7. 示例与测试
-构建完成后会生成 `axi_dramsys_bridge` 库，以及在 `tests/` 目录存在源码时自动启用的 `bridge_test` 和 `dramsys_lpddr4_test` 可执行程序。它们分别用于验证桥接逻辑及与 DRAMSys 的端到端读写流程，默认链接 SystemC、DRAMSys 与桥接库，方便你在本仓库或外部工程中参考测试结构。【F:CMakeLists.txt†L301-L359】
+构建完成后会生成 `axi_dramsys_bridge` 库，以及在 `tests/` 目录存在源码时自动启用的 `bridge_test` 和 `dramsys_lpddr4_test` 可执行程序。它们分别用于验证桥接逻辑及与 DRAMSys 的端到端读写流程，默认链接 SystemC、DRAMSys 与桥接库，方便你在本仓库或外部工程中参考测试结构。【F:CMakeLists.txt†L247-L303】
+
+### 7.1 确认测试已编译
+默认情况下，`CMakeLists.txt` 只会在开启 `DRAMSYS_NATIVE_INTEGRATION` 时同时生成 `bridge_test` 和 `dramsys_lpddr4_test` 目标；如果检测到上一级目录存在 `build_dramsys.sh` 脚本且你没有显式传入 `-DDRAMSYS_NATIVE_INTEGRATION=ON`，CMake 会保留脚本式流程并跳过所有桥接/测试目标，从而导致 `ctest` 报告 “No tests were found”。【F:CMakeLists.txt†L25-L38】【F:CMakeLists.txt†L264-L320】
+使用 `./build.sh rel native` 或其它构建模式附加 `native` 参数，脚本会在配置阶段注入 `-DDRAMSYS_NATIVE_INTEGRATION=ON` 并进入原生集成路径，确保测试目标被注册到构建目录中。【F:build.sh†L4-L65】
+
+### 7.2 执行测试并查看日志
+进入 `build` 目录后运行 `ctest -R "bridge_test|dramsys_lpddr4_test" --output-on-failure`（或使用 `ctest --test-dir build ...`），即可在终端看到 SystemC 打印的检查信息，完整输出会同时写入 `build/Testing/Temporary/LastTest.log` 便于后续排查。测试二进制位于构建目录根部，也可以直接执行 `./bridge_test` 或 `./dramsys_lpddr4_test` 单独调试。
 
 ## 8. 常见问题与排错
 - **找不到 SystemC 库**：若 `SYSTEMC_PATH` 指向的目录未包含已编译的 SystemC 库，配置阶段会报错 `SystemC library not found`。请确认已按该路径编译安装 SystemC，或启用 FetchContent 使用仓库内自带源码。【F:CMakeLists.txt†L162-L177】
