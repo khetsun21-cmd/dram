@@ -65,6 +65,34 @@ AXIResponse rsp = AXIHelper::sendBlockingRead(cpu_socket, req, delay);
 ### 5.4 在自定义可执行程序中驱动仿真
 仓库默认的 `sc_main` 仅用于占位，实际仿真应在外部可执行程序中完成模块实例化、连接和 `sc_start()` 调用。因此，当你将本项目作为子模块或静态库引用时，只需要在自己的顶层 SystemC 程序中包含相关头文件并启动仿真即可。【F:src/sc_main.cpp†L3-L10】
 
+### 5.5 在纯 C++/ESL 顶层中按需驱动仿真
+若你的上层并非 SystemC 模块，而是希望在普通 C++ 程序中手动调用 `sc_start()` 推进时间，可以使用新增的 `AxiDramsysModel` 封装。该类会在内部实例化 `AxiDramsysSystem`、桥接器及一个阻塞式 AXI master 线程，并提供：
+
+- `write()` / `read()`：阻塞式 API，会在内部循环调用 `sc_start(step_time)` 直至事务完成；
+- `post_write()` / `post_read()` + `is_request_done()` / `collect_response()`：异步提交接口，方便上层以自定义节奏驱动仿真；
+- `advance_cycle()` / `advance_for()`：显式推进仿真时间，便于和其它 ESL 模型共享主循环。
+
+典型用法如下：
+
+```cpp
+AxiDramsysModel model{"cxx_model"};
+model.set_config_path("configs/lpddr4-example.json");
+
+// 阻塞写/读
+axi_helper::AXIRequest req(addr, size);
+model.write(req);
+model.read(req);
+
+// 异步请求 + 手动驱动时钟
+auto handle = model.post_read(req);
+while (!model.is_request_done(handle)) {
+    model.advance_cycle();
+}
+auto resp = model.collect_response(handle, &req);
+```
+
+`tests/cxx_model_test.cpp` 展示了完整的异步写读流程，并通过 `advance_cycle()`/`advance_cycles()` 演示如何让外部循环掌控仿真节奏。【F:src/AxiDramsysModel.h†L15-L146】【F:src/AxiDramsysModel.cpp†L5-L193】【F:tests/cxx_model_test.cpp†L1-L103】
+
 ## 6. 常用 CMake 选项速查
 | 变量 | 默认值 | 作用 |
 | --- | --- | --- |
