@@ -246,8 +246,9 @@ if(DRAMSYS_NATIVE_INTEGRATION)
 
     add_library(axi_dramsys_bridge SHARED
         src/AXIHelper.cpp
-        src/AxiToTlmBridge.cpp
+        src/AxiDramsysModel.cpp
         src/AxiDramsysSystem.cpp
+        src/AxiToTlmBridge.cpp
     )
 
     target_include_directories(axi_dramsys_bridge
@@ -308,8 +309,30 @@ if(DRAMSYS_NATIVE_INTEGRATION)
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin)
 
+    set(_cxx_model_test_src "${CMAKE_CURRENT_SOURCE_DIR}/tests/cxx_model_test.cpp")
+    if(EXISTS "${_cxx_model_test_src}")
+        add_executable(cxx_model_test "${_cxx_model_test_src}")
+        target_link_libraries(cxx_model_test PRIVATE SystemC::systemc axi_dramsys_bridge)
+        target_include_directories(cxx_model_test PRIVATE
+            "${DRAMSYS_PATH}/src"
+            "${DRAMSYS_PATH}/src/configuration"
+            "${DRAMSYS_PATH}/include"
+            "${DRAMSYS_PATH}/lib/DRAMUtils/include"
+            "${DRAMSYS_PATH}/lib/DRAMUtils/include/DRAMUtils"
+            "${DRAMSYS_PATH}/lib/DRAMPower/src/DRAMPower"
+            "${DRAMSYS_PATH}/src/libdramsys"
+            "${DRAMSYS_PATH}/lib/nlohmann_json/include")
+        target_compile_definitions(cxx_model_test PRIVATE SRC_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+        if(BUILD_TESTING)
+            add_test(NAME cxx_model_test COMMAND cxx_model_test)
+        endif()
+    else()
+        message(STATUS "Test source ${_cxx_model_test_src} not found; skipping cxx_model_test target")
+    endif()
+
     install(FILES
         src/AXIHelper.h
+        src/AxiDramsysModel.h
         src/AxiDramsysSystem.h
         src/AxiToTlmBridge.h
         DESTINATION include)
