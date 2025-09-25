@@ -5,6 +5,7 @@
 #include <tlm>
 #include <cstddef>
 #include <deque>
+#include <memory>
 #include <vector>
 #include <axi/axi_tlm.h>
 #include <unordered_map>
@@ -67,7 +68,11 @@ private:
     sc_core::sc_clock clk_gen_{"bridge_clk", sc_core::sc_time(1, sc_core::SC_NS)};
     // Queue to process nb_transport requests
     sc_core::sc_fifo<payload_type*> req_fifo_{16};
+    struct RequestContext;
     void process_axi_reqs();
+    void process_completions();
+    void finalize_request(RequestContext* ctx);
+    void schedule_completion(tlm::tlm_generic_payload& trans, const sc_core::sc_time& delay);
 
     // tlm_fw_transport_if implementation
     void b_transport(payload_type& trans, sc_core::sc_time& delay) override;
@@ -81,8 +86,23 @@ private:
                                        sc_core::sc_time& delay) override;
     void invalidate_direct_mem_ptr(sc_dt::uint64, sc_dt::uint64) override {}
 
-    // Track outstanding downstream AT transactions
-    std::unordered_map<tlm::tlm_generic_payload*, sc_core::sc_event*> pending_resp_{};
+    struct RequestContext {
+        payload_type* original{nullptr};
+        std::size_t total_bytes{0};
+        std::size_t completed_bytes{0};
+        unsigned outstanding{0};
+        bool all_dispatched{false};
+        bool has_error{false};
+        tlm::tlm_response_status error_status{tlm::TLM_OK_RESPONSE};
+    };
+
+    // Track active AXI transactions and downstream payloads
+    std::unordered_map<payload_type*, std::unique_ptr<RequestContext>> active_reqs_{};
+    std::unordered_map<tlm::tlm_generic_payload*, RequestContext*> pending_sub_{};
+
+    // Completion handling
+    sc_core::sc_event_queue completion_queue_{"completion_queue"};
+    std::deque<tlm::tlm_generic_payload*> completion_fifo_{};
 };
 
 #endif // AXI_TO_TLM_BRIDGE_H
