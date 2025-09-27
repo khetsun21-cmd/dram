@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 
 /**
@@ -29,7 +30,12 @@ public:
     ~AxiDramsysModel();
 
     void set_config_path(const std::filesystem::path& path);
+    void set_embedded_config(DRAMSys::Config::EmbeddedConfiguration config);
     const std::filesystem::path& get_config_path() const { return config_path_; }
+    std::optional<DRAMSys::Config::EmbeddedConfiguration> get_embedded_config() const
+    {
+        return embedded_config_;
+    }
 
     /**
      * @brief 完成 DRAMSys 实例化并执行零时间启动，必须在发起事务之前调用。
@@ -95,6 +101,7 @@ private:
     sc_core::sc_time clock_period_;
     sc_core::sc_time step_time_;
     std::filesystem::path config_path_{};
+    std::optional<DRAMSys::Config::EmbeddedConfiguration> embedded_config_{};
     bool initialized_{false};
 
     std::unique_ptr<sc_core::sc_clock> clock_;

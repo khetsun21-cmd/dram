@@ -21,7 +21,13 @@ public:
 
     void set_config_path(const std::filesystem::path& config_path);
     void set_config_path(const std::string& config_path) { set_config_path(std::filesystem::path(config_path)); }
+    void set_embedded_config(DRAMSys::Config::EmbeddedConfiguration config);
+
     const std::filesystem::path& get_config_path() const { return config_path_; }
+    std::optional<DRAMSys::Config::EmbeddedConfiguration> get_embedded_config() const
+    {
+        return embedded_config_;
+    }
 
 protected:
     void before_end_of_elaboration() override;
@@ -32,6 +38,7 @@ private:
 
     AxiToTlmBridge bridge_;
     std::filesystem::path config_path_{};
+    std::optional<DRAMSys::Config::EmbeddedConfiguration> embedded_config_{};
     std::optional<DRAMSys::Config::Configuration> configuration_{};
     std::unique_ptr<DRAMSys::DRAMSys> dramsys_{};
 

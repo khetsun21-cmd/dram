@@ -44,6 +44,7 @@
 #include <DRAMUtils/memspec/MemSpec.h>
 #include <DRAMUtils/util/json_utils.h>
 
+#include <filesystem>
 #include <optional>
 #include <string>
 
@@ -76,6 +77,14 @@ struct Configuration
 
 NLOHMANN_JSONIFY_ALL_THINGS(
     Configuration, addressmapping, mcconfig, memspec, simconfig, simulationid, tracesetup)
+
+enum class EmbeddedConfiguration
+{
+    Lpddr4
+};
+
+Configuration from_embedded(EmbeddedConfiguration config);
+std::optional<Configuration> try_from_embedded(const std::filesystem::path& baseConfig);
 
 Configuration from_path(std::filesystem::path baseConfig);
 
