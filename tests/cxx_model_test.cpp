@@ -1,7 +1,6 @@
 #include "AxiDramsysModel.h"
 
 #include <algorithm>
-#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
@@ -34,14 +33,8 @@ bool check_success(const axi_helper::AXIResponse& resp, const char* what) {
 } // namespace
 
 int main() {
-    std::filesystem::path config = std::filesystem::path(SRC_ROOT_DIR) / "src" / "DRAMSys" / "configs" / "lpddr4-example.json";
-    if (!std::filesystem::exists(config)) {
-        std::cerr << "Configuration file not found: " << config << '\n';
-        return 1;
-    }
-
     AxiDramsysModel model{"cxx_model"};
-    model.set_config_path(config);
+    model.set_embedded_config(DRAMSys::Config::EmbeddedConfiguration::Lpddr4);
     model.initialize();
 
     const sc_dt::uint64 base_address = 0x2000;

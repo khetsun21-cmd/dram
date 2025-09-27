@@ -21,9 +21,18 @@ AxiDramsysModel::AxiDramsysModel(std::string name, sc_core::sc_time clk_period)
 AxiDramsysModel::~AxiDramsysModel() = default;
 
 void AxiDramsysModel::set_config_path(const std::filesystem::path& path) {
+    embedded_config_.reset();
     config_path_ = path;
     if (dramsys_) {
         dramsys_->set_config_path(config_path_);
+    }
+}
+
+void AxiDramsysModel::set_embedded_config(DRAMSys::Config::EmbeddedConfiguration config) {
+    config_path_.clear();
+    embedded_config_ = config;
+    if (dramsys_) {
+        dramsys_->set_embedded_config(config);
     }
 }
 
@@ -32,11 +41,14 @@ void AxiDramsysModel::initialize() {
         return;
     }
 
-    if (config_path_.empty()) {
-        throw std::runtime_error("Configuration path must be set before initialize()");
+    if (embedded_config_) {
+        dramsys_->set_embedded_config(*embedded_config_);
+    } else {
+        if (config_path_.empty()) {
+            throw std::runtime_error("Configuration path must be set before initialize()");
+        }
+        dramsys_->set_config_path(config_path_);
     }
-
-    dramsys_->set_config_path(config_path_);
     sc_core::sc_start(sc_core::SC_ZERO_TIME);
     initialized_ = true;
 }
